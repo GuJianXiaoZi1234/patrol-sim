@@ -1,12 +1,13 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, onMounted } from 'vue'
 
 const cellSize = 36
 
-const map = {
+const map = reactive({
   width: 16,
   height: 12,
-}
+  obstacles: [],
+})
 
 const robot = reactive({
   x: 1,
@@ -15,58 +16,97 @@ const robot = reactive({
   status: 'idle',
 })
 
-// 暂定模拟规则：0 向上、90 向右、180 向下、270 向左
-function move(step) {
-  let nextX = robot.x
-  let nextY = robot.y
+const control = reactive({
+  busy: false,
+  message: '',
+})
 
-  if (robot.heading === 0) {
-    nextY = nextY - step
-  } else if (robot.heading === 90) {
-    nextX = nextX + step
-  } else if (robot.heading === 180) {
-    nextY = nextY + step
-  } else if (robot.heading === 270) {
-    nextX = nextX - step
-  }
+async function sendAction(action) {
+  if (control.busy) return
 
-  if (
-    nextX >= 0 &&
-    nextX < map.width &&
-    nextY >= 0 &&
-    nextY < map.height
-  ) {
-    robot.x = nextX
-    robot.y = nextY
-    robot.status = 'idle'
-  } else {
-    robot.status = 'blocked'
+  control.busy = true
+  control.message = ''
+
+  try {
+    const response = await fetch(
+      'http://127.0.0.1:8000/api/robot/move',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      },
+    )
+
+    const data = await response.json()
+
+    if (response.ok) {
+      Object.assign(robot, data)
+    } else {
+      control.message = data.error?.message || '操作失败'
+
+      // 拦截响应只有错误信息，需要另查机器人最新状态
+      const stateResponse = await fetch(
+        'http://127.0.0.1:8000/api/robot',
+      )
+      if (!stateResponse.ok) {
+        throw new Error('状态读取失败')
+      }
+      Object.assign(robot, await stateResponse.json())
+    }
+  } catch (error) {
+    console.error(error)
+    control.message = '连接后端失败，请检查后端终端'
+  } finally {
+    control.busy = false
   }
 }
 
 function moveForward() {
-  move(1)
+  return sendAction('forward')
 }
 
 function moveBack() {
-  move(-1)
+  return sendAction('back')
 }
 
 function turnLeft() {
-  robot.heading = (robot.heading + 270) % 360
-  robot.status = 'idle'
+  return sendAction('turn_left')
 }
 
 function turnRight() {
-  robot.heading = (robot.heading + 90) % 360
-  robot.status = 'idle'
+  return sendAction('turn_right')
 }
+
+async function loadData() {
+  try {
+    const mapResponse = await fetch('http://127.0.0.1:8000/api/map')
+    if (!mapResponse.ok) {
+      throw new Error('地图读取失败')
+    }
+    const mapData = await mapResponse.json()
+    Object.assign(map, mapData)
+
+    const robotResponse = await fetch('http://127.0.0.1:8000/api/robot')
+    if (!robotResponse.ok) {
+      throw new Error('机器人状态读取失败')
+    }
+    const robotData = await robotResponse.json()
+    Object.assign(robot, robotData)
+  } catch (error) {
+    console.error(error)
+    alert('读取后端失败，请检查后端是否正在运行')
+  }
+}
+
+onMounted(loadData)
 </script>
 
 <template>
   <main>
     <h1>智能巡检机器人</h1>
-    <p>模拟数据模式 · 地图预览</p>
+   <p>后端接口联调 · 手动控制</p>
 
     <svg
       :viewBox="`0 0 ${map.width * cellSize} ${map.height * cellSize}`"
@@ -96,6 +136,16 @@ function turnRight() {
         stroke="#cbd5e1"
       />
 
+       <rect
+  v-for="obstacle in map.obstacles"
+  :key="obstacle.join(',')"
+  :x="obstacle[0] * cellSize"
+  :y="obstacle[1] * cellSize"
+  :width="cellSize"
+  :height="cellSize"
+  fill="#64748b"
+  />
+
       <!-- 机器人：放在对应格子内，四周留一点空隙 -->
       <rect
         :x="robot.x * cellSize + 4"
@@ -115,11 +165,14 @@ function turnRight() {
 >
   {{ { 0: '↑', 90: '→', 180: '↓', 270: '←' }[robot.heading] }}
 </text>
+
     </svg>
-    <button @click="turnLeft">左转</button>
-    <button @click="moveForward">前进</button>
-    <button @click="moveBack">后退</button>
-    <button @click="turnRight">右转</button>
+   <button :disabled="control.busy" @click="turnLeft">左转</button>
+<button :disabled="control.busy" @click="moveForward">前进</button>
+<button :disabled="control.busy" @click="moveBack">后退</button>
+<button :disabled="control.busy" @click="turnRight">右转</button>
+
+<p role="status">{{ control.message }}</p>
     <p>
       位置：({{ robot.x }}, {{ robot.y }})
       · 朝向：{{ robot.heading }}°

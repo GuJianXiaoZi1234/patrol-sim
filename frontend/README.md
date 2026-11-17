@@ -1,46 +1,58 @@
 # 前端说明
 
-## 功能与环境
+## 已实现功能
 
-- 已实现：16×12 网格地图、机器人位置与朝向显示、前进、后退、左右转，以及越界拦截。
-- 当前使用前端模拟数据，尚未连接后端，不包含障碍物检测。
-- 前端使用 Vue 3 + Vite，地图和机器人使用 SVG 绘制。
-- 已验证环境：Node.js v24.22.0、npm 11.19.1。
+- Vue 3 + Vite 前端，使用 SVG 绘制地图和机器人。
+- 从后端读取 16×12 地图、5 个障碍物和机器人状态。
+- 支持前进、后退、左转、右转，通过后端接口执行。
+- 显示位置、朝向、状态及越界、撞障碍提示。
+- 请求期间禁用控制按钮，避免重复发送指令。
 
-## 本地启动流程
+## 本地启动
 
-1. 从仓库根目录进入前端：
+以下命令均从仓库根目录开始执行。
 
-   ```bash
-   cd frontend
-   ```
+### 启动后端
 
-2. 安装依赖：
+首次使用时创建虚拟环境并安装依赖：
 
-   ```bash
-   npm ci
-   ```
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
-3. 后端地址配置：当前模拟数据阶段不适用，无需启动后端。
+后续新开终端，在 backend 目录激活环境后启动：
 
-4. 启动前端：
+```bash
+source .venv/bin/activate
+python -m uvicorn app.main:app --reload --port 8000
+```
 
-   ```bash
-   npm run dev
-   ```
+健康检查：http://127.0.0.1:8000/api/health
 
-   在浏览器打开终端显示的 Local 地址，通常为 http://localhost:5173。
+### 启动前端
 
-5. 验证页面：
-   - 刷新后，机器人位于 (1,1)，朝向为 90°，箭头向右。
-   - 点击左转，朝向变为 0°，位置不变。
-   - 点击前进，到达 (1,0)。
-   - 再次前进，位置不变，状态变为 blocked。
-   - 点击后退，回到 (1,1)，状态恢复 idle。
-   - 当前没有发送后端 API 请求。
+另开终端，从仓库根目录执行：
 
-## 构建与检查
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
-- 执行 `npm run build`，构建产物位于 `dist/`。
-- 已通过生产构建及上述页面手动验证。
-- `node_modules/` 和 `dist/` 不提交；`package-lock.json` 需要提交。
+访问终端显示的 Local 地址，通常为 http://localhost:5173。
+前端当前连接 http://127.0.0.1:8000，使用时需同时运行后端。
+
+## 检查与验证
+
+- 在 backend 目录激活虚拟环境，执行 `python -m pytest -q`：5 项通过。
+- 在 frontend 目录执行 `npm run build`：通过。
+- 手动验证：地图与障碍物显示、四个控制按钮、前后端坐标一致、
+  越界拦截、障碍物拦截及受阻后恢复移动，均正常。
+- 机器人状态保存在后端内存中，重启后端会恢复初始状态。
+
+## 提交规则
+
+不提交 .venv、node_modules 和 dist；保留 package-lock.json。
