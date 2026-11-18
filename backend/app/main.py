@@ -93,5 +93,5 @@ def sensors_front():
     return probe(robot.x, robot.y, robot.heading)
 
 # 结业打包时（运维）在下面挂载前端静态产物，本地联调保持注释：
-# from fastapi.staticfiles import StaticFiles
-# app.mount("/", StaticFiles(directory="static", html=True), name="static")
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
