@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from pathplanning.grid_map import H, OBSTACLES, W
 from simulation.robot import Robot, back_checked, forward_checked
+from sensors.front import probe
 
 app = FastAPI(title="patrol-sim", version="0.1.0")
 
@@ -85,38 +86,12 @@ def move(req: MoveRequest):
     return robot_state()
 
 
+
+@app.get("/api/sensors/front")
+def sensors_front():
+    """契约接口：沿当前朝向逐格探测，返回 blocked 与 distance"""
+    return probe(robot.x, robot.y, robot.heading)
+
 # 结业打包时（运维）在下面挂载前端静态产物，本地联调保持注释：
 # from fastapi.staticfiles import StaticFiles
 # app.mount("/", StaticFiles(directory="static", html=True), name="static")
-@app.get("/api/sensor/front")
-def read_front_sensor():
-    return {"ok": True, "data": forward_checked(robot)}
-
-@app.get("/api/sensor/back")
-def read_back_sensor():
-    return {"ok": True, "data": back_checked(robot)}
-@app.get("/api/sensor/front_info")
-def front_info():
-    try:
-        data = forward_checked(robot)
-        if data is None:
-            return {"ok": True, "blocked": False, "distance": None}
-        min_dist = min(data)
-        blocked = min_dist < 0.2
-        return {"ok": True, "blocked": blocked, "distance": min_dist}
-    except Exception as e:
-        print("front sensor error:", e)
-        return {"ok": True, "blocked": False, "distance": None}
-
-@app.get("/api/sensor/back_info")
-def back_info():
-    try:
-        data = back_checked(robot)
-        if data is None:
-            return {"ok": True, "blocked": False, "distance": None}
-        min_dist = min(data)
-        blocked = min_dist < 0.2
-        return {"ok": True, "blocked": blocked, "distance": min_dist}
-    except Exception as e:
-        print("back sensor error:", e)
-        return {"ok": True, "blocked": False, "distance": None}
