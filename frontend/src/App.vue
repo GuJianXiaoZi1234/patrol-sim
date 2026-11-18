@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, onUnmounted } from 'vue'
 
 const cellSize = 36
 
@@ -100,7 +100,48 @@ async function loadData() {
   }
 }
 
-onMounted(loadData)
+let timer = null
+let polling = false
+let disposed = false
+
+async function refreshRobot() {
+  if (polling) return
+
+  polling = true
+
+  try {
+    const response = await fetch(
+      'http://127.0.0.1:8000/api/robot',
+    )
+
+    if (!response.ok) {
+      throw new Error(`机器人状态读取失败：${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (!disposed) {
+      Object.assign(robot, data)
+    }
+  } catch (error) {
+    console.error('轮询失败', error)
+  } finally {
+    polling = false
+  }
+}
+
+onMounted(async () => {
+  await loadData()
+
+  if (!disposed) {
+    timer = setInterval(refreshRobot, 500)
+  }
+})
+
+onUnmounted(() => {
+  disposed = true
+  clearInterval(timer)
+})
 </script>
 
 <template>
