@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted, onUnmounted } from 'vue'
+import { reactive, ref,onMounted, onUnmounted } from 'vue'
 
 const cellSize = 36
 
@@ -20,6 +20,19 @@ const control = reactive({
   busy: false,
   message: '',
 })
+const sensorBlocked = ref(false)
+const sensorDistance = ref(null)
+
+const fetchSensorData = async () => {
+try {
+const res = await fetch("http://127.0.0.1:8000/api/sensors/front")
+const data = await res.json()
+sensorBlocked.value = data.blocked
+sensorDistance.value = data.distance
+} catch { /* 后端未起：保持上次值 */ }
+}
+
+const sensorTimer = setInterval(fetchSensorData, 500)
 
 async function sendAction(action) {
   if (control.busy) return
@@ -142,6 +155,7 @@ onUnmounted(() => {
   disposed = true
   clearInterval(timer)
 })
+onUnmounted(() => clearInterval(sensorTimer))
 </script>
 
 <template>
@@ -219,5 +233,18 @@ onUnmounted(() => {
       · 朝向：{{ robot.heading }}°
       · 状态：{{ robot.status }}
     </p>
+    <div class="sensor-box">
+  <p>前方传感器</p >
+  <p>blocked：{{ sensorBlocked }}</p >
+  <p>distance：{{ sensorDistance }}</p >
+</div>
   </main>
 </template>
+<style scoped>
+.sensor-box {
+  border: 1px solid #222;
+  padding: 8px 12px;
+  margin-top: 8px;
+  display: inline-block;
+}
+</style>
