@@ -62,6 +62,22 @@ def get_robot():
 
 @app.post("/api/robot/move")
 def move(req: MoveRequest):
+    if req.action in ("forward", "back") and patrol_state["worker"] is not None \
+       and patrol_state["worker"].is_alive():
+        return JSONResponse(
+            status_code=409,
+            content={"error": {"code": "PATROL_BLOCKED",
+                     "message": "巡检进行中，请先停止巡检再手动控制"}},
+        )
+
+    if robot.status == "patrolling":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": {
+                    "code": "PATROL_ALREADY_RUNNING",
+                    "message": "巡检进行中，请点「停止巡检」后再手动控制"}},
+    )
     if req.action in ("turn_left", "turn_right"):
         robot.turn(req.action)
         return robot_state()
