@@ -24,13 +24,15 @@ const sensorBlocked = ref(false)
 const sensorDistance = ref(null)
 
 const fetchSensorData = async () => {
-  const res = await fetch("http://127.0.0.1:8000/api/sensors/front")
-  const data = await res.json()
-  sensorBlocked.value = data.blocked
-  sensorDistance.value = data.distance
+try {
+const res = await fetch("http://127.0.0.1:8000/api/sensors/front")
+const data = await res.json()
+sensorBlocked.value = data.blocked
+sensorDistance.value = data.distance
+} catch { /* 后端未起：保持上次值 */ }
 }
 
-setInterval(fetchSensorData, 300)
+const sensorTimer = setInterval(fetchSensorData, 500)
 
 async function sendAction(action) {
   if (control.busy) return
@@ -153,6 +155,7 @@ onUnmounted(() => {
   disposed = true
   clearInterval(timer)
 })
+onUnmounted(() => clearInterval(sensorTimer))
 </script>
 
 <template>
