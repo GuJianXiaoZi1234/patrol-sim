@@ -160,15 +160,6 @@ const patrolStatus = ref('idle')
 const patrolMessage = ref('')
 const patrolProgress = ref({ active: false, total: 3, current: 0, done: false })
 let patrolTimer = null
-let patrolStartedAt = 0
-
-function mockGetPatrolProgress() {
-  const total = patrolProgress.value.total
-  const current = Math.min(total, Math.floor((Date.now() - patrolStartedAt) / 2000))
-  const done = current === total
-
-  return { active: !done, total, current, done }
-}
 
 function stopPatrolPolling() {
   clearInterval(patrolTimer)
@@ -327,9 +318,9 @@ onUnmounted(() => clearInterval(sensorTimer))
 
     </svg>
    <button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'" @click="turnLeft">左转</button>
-<button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'" @click="moveForward">前进</button>
-<button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'"@click="moveBack">后退</button>
-<button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'"@click="turnRight">右转</button>
+   <button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'" @click="moveForward">前进</button>
+   <button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'" @click="moveBack">后退</button>
+   <button :disabled="control.busy || patrolStatus === 'patrolling' || robot.status === 'patrolling'" @click="turnRight">右转</button>
 
 <p role="status">{{ control.message }}</p>
     <p>
