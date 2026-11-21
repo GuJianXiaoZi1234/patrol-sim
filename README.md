@@ -8,6 +8,18 @@
 
 本项目还展示了 `XXX`。
 
+## 快速开始
+
+公开镜像（任何人可拉取）：
+
+```bash
+docker pull ghcr.io/gujianxiaozi1234/patrol-sim:latest
+docker run -d --name patrol -p 8000:8000 ghcr.io/gujianxiaozi1234/patrol-sim:latest
+```
+
+打开 http://localhost:8000 即可查看二维地图并手动控制机器人。完整步骤见[运行说明](docs/04_运行与结业提交.md)。
+
+
 ## 技术选型
 
 - 前端使用 `XXX` 开发页面和操作界面。
