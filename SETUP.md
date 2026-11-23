@@ -16,7 +16,7 @@
 2. 右上角头像 → **Settings** → 左侧拉到最底 → **Developer settings**
 3. **Personal access tokens** → **Tokens (classic)** → **Generate new token (classic)**
 4. Note 填 `patrol-sim`；Expiration 选 **90 days**；勾选框**只勾第一项 repo**
-5. 点绿色 Generate token → 复制那串 **ghp_ 开头**的字符 → 立刻存进手机备忘录
+5. 点绿色 Generate token → 复制那串 **ghp 开头**的字符 → 立刻存进手机备忘录
    （只显示这一次，刷新就没了）
 
 **纪律**：这串绝不发群、不发任何人、不粘贴给 AI——它等于你的上传密码。
@@ -113,7 +113,7 @@ cd backend && source .venv/bin/activate    # 看到 (.venv) 才继续
 | Ctrl+V 粘贴没反应 | Ubuntu 终端不吃 Ctrl+V，用鼠标右键或 Ctrl+Shift+V |
 | clone/push 报 TLS / GnuTLS -110 | 校园网抖动：退出 Watt Toolkit/Steam++ 加速器，重试一两次 |
 | push 报 403 Permission denied | 协作者邀请没点 Accept：GitHub 铃铛通知里接受，或打开 `github.com/zhuyuhan-nb/patrol-sim/invitations` |
-| push 要密码 | 输 **ghp_ 开头的令牌**（不是网页密码）；屏幕不显示字符是正常的 |
+| push 要密码 | 输 **ghp 开头的令牌**（不是网页密码）；屏幕不显示字符是正常的 |
 | commit 报 Please tell me who you are | 回第 2 步，两条命令没跑或没换成自己的用户名 |
 | sudo 密码总不对 | 输的是 Ubuntu 安装时设的密码（不是 GitHub 令牌）；屏幕不显示 |
 | No module named pytest | `(.venv)` 没亮：`source .venv/bin/activate` 再跑 |
